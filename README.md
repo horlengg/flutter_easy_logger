@@ -1,4 +1,4 @@
-# flutter_easy_logger
+# flutter_easy_logger_plus
 
 A lightweight Flutter logging plugin powered by Socket.IO that streams logs in real time to a remote log viewer server.
 
@@ -94,11 +94,11 @@ Use that IP in both your server startup and in `EasyLogger.instance.initialize(.
 
 ## Installation
 
-Add `flutter_easy_logger` to your `pubspec.yaml`:
+Add `flutter_easy_logger_plus` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_easy_logger: ^<latest-version>
+  flutter_easy_logger_plus: ^<latest-version>
 ```
 
 Then run:
@@ -110,7 +110,7 @@ flutter pub get
 Import it in your Dart file:
 
 ```dart
-import 'package:flutter_easy_logger/easy_logger.dart';
+import 'package:flutter_easy_logger_plus/flutter_easy_logger_plus.dart';
 ```
 
 -----
@@ -119,7 +119,7 @@ import 'package:flutter_easy_logger/easy_logger.dart';
 
 ### 1. Enable logging with a compile-time flag
 
-`flutter_easy_logger` uses `--dart-define` to gate logging at compile time, so it produces **zero overhead in production**.
+`flutter_easy_logger_plus` uses `--dart-define` to gate logging at compile time, so it produces **zero overhead in production**.
 
 ```bash
 # Development — logging enabled
@@ -135,7 +135,7 @@ Initialize `EasyLogger` once at app startup, before `runApp`.
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:flutter_easy_logger/easy_logger.dart';
+import 'package:flutter_easy_logger/flutter_easy_logger_plus.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -226,7 +226,7 @@ EasyLogger.instance.dispose();
 ## Full Usage Example
 
 ```dart
-import 'package:flutter_easy_logger/easy_logger.dart';
+import 'package:flutter_easy_logger_plus/flutter_easy_logger_plus.dart';
 
 // Log plain messages
 EasyLogger.instance.debug("View appeared", tag: "HomeScreen");
@@ -260,7 +260,7 @@ EasyLogger.instance.dispose();
 
 ## Socket Events
 
-`flutter_easy_logger` emits the following Socket.IO events to the server:
+`flutter_easy_logger_plus` emits the following Socket.IO events to the server:
 
 |Event      |Payload                 |Description                 |
 |-----------|------------------------|----------------------------|
