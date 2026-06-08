@@ -2,29 +2,38 @@ import 'dart:convert';
 import 'package:socket_io_client/socket_io_client.dart';
 
 class EasyLogger {
-  static final EasyLogger instance = EasyLogger._internal();
-  EasyLogger._internal();
+  
+  static final EasyLogger _instance = EasyLogger._internal();
+
+  factory EasyLogger() {
+    return _instance;
+  }
+  EasyLogger._internal() {
+    _initialize();
+  }
+
 
   Socket? _socket;
   bool _isConnecting = false;
   final List<_LogRequest> _pendingLogs = [];
 
-  bool get _isEnableLog =>
-      const bool.fromEnvironment('ENABLE_LOG', defaultValue: false);
+  String get _serverUrl => const String.fromEnvironment('LOG_SERVER_URI');
 
-  void initialize(String url) {
+  bool get _isEnableLog => _serverUrl.isNotEmpty;
+
+  void _initialize() {
     if (!_isEnableLog) return;
     _isConnecting = true;
 
     _socket = io(
-      url,
+      _serverUrl,
       OptionBuilder().setTransports(['websocket']).disableAutoConnect().build(),
     );
 
     _socket!.connect();
 
     _socket!.onConnect((_) {
-      print('Logger socket connected $url');
+      print('Logger socket connected $_serverUrl');
       _isConnecting = false;
       _flushPendingLogs();
     });

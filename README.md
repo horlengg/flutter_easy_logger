@@ -32,7 +32,7 @@ The server is a Node.js + Express + Socket.IO app. It binds to your machine’s 
 
 ```js
 const PORT = process.env.PORT || 3000;
-const host = process.env.HOST_IP || "172.20.10.12"; // Your machine's local IP
+const host = process.env.HOST_IP || "172.xx.xx.xx"; // Your machine's local IP
 const uri = `http://${host}:${PORT}`;
 ```
 
@@ -47,13 +47,13 @@ cd easy-logger-server
 npm install
 
 # Start with your machine's local IP
-HOST_IP=172.20.10.12 node server.js
+PORT=5000 HOST_IP=172.xx.xx.xx node server.js 
 
 # Or just use the default IP hardcoded in server.js
 npm start
 ```
 
-The log viewer UI will be available at `http://<your-ip>:3000` in your browser.
+The log viewer UI will be available at `http://<your-ip>:<your-port>` in your browser.
 
 ### Option B — Run with Docker
 
@@ -62,7 +62,7 @@ The log viewer UI will be available at `http://<your-ip>:3000` in your browser.
 docker build -t easy-logger-server .
 
 # Run with your local IP passed as an env variable
-docker run -p 3000:3000 -e HOST_IP=172.20.10.12 easy-logger-server
+docker run -p 3000:3000 -e HOST_IP=172.xx.xx.xx easy-logger-server
 ```
 
 The Dockerfile uses `node:18-alpine` and exposes port `3000`.
@@ -79,15 +79,15 @@ ifconfig en0 | grep "inet "
 ipconfig
 ```
 
-Example output: `inet 172.20.10.12 netmask 0xffffff00`
+Example output: `inet 172.xx.xx.xx netmask 0xffffff00`
 
-Use that IP in both your server startup and in `EasyLogger.instance.initialize(...)`.
+Use that IP in both your server startup when first time call `EasyLogger()`.
 
 ### Environment Variables
 
 |Variable |Default       |Description                  |
 |---------|--------------|-----------------------------|
-|`HOST_IP`|`172.20.10.12`|Your machine’s LAN IP address|
+|`HOST_IP`|`xx.xx.xx.xx`|Your machine’s LAN IP address|
 |`PORT`   |`3000`        |Port the server listens on   |
 
 -----
@@ -123,25 +123,10 @@ import 'package:flutter_easy_logger_plus/flutter_easy_logger_plus.dart';
 
 ```bash
 # Development — logging enabled
-flutter run --dart-define=ENABLE_LOG=true
+flutter run --dart-define=LOG_SERVER_URI=http://10.105.141.142:3000
 
 # Production build — logging disabled (default)
 flutter build apk
-```
-
-### 2. Initialize in `main()`
-
-Initialize `EasyLogger` once at app startup, before `runApp`.
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:flutter_easy_logger/flutter_easy_logger_plus.dart';
-
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  EasyLogger.instance.initialize("http://172.20.10.12:3000"); // Your local IP 
-  runApp(const MyApp());
-}
 ```
 
 > Logs emitted before the socket connects are **queued** and automatically flushed once the connection is established.
@@ -150,21 +135,6 @@ void main() {
 
 ## API Reference
 
-### `initialize(String url)`
-
-Connects to the log server. Must be called before any logging.
-
-```dart
-EasyLogger.instance.initialize("http://<server-ip>:<port>");
-```
-
-|Parameter|Type    |Description         |
-|---------|--------|--------------------|
-|`url`    |`String`|WebSocket server URL|
-
-Logging is controlled by the `ENABLE_LOG` compile-time flag. Pass it via `--dart-define=ENABLE_LOG=true` at run time.
-
------
 
 ### Logging Methods
 
@@ -195,8 +165,9 @@ EasyLogger.instance.error("DB save failed", tag: "Persistence");
 Serializes any JSON-encodable object to a pretty-printed JSON string. Useful for logging API responses or model data inline.
 
 ```dart
-final apiResponseStr = EasyLogger.instance.toJSONString(apiResponse);
-EasyLogger.instance.debug("API Response: <json>$apiResponseStr<json>", tag: "API");
+final _log = EasyLogger()
+final apiResponseStr = _log.toJSONString(apiResponse);
+_log.debug("API Response: <json>$apiResponseStr<json>", tag: "API");
 ```
 
 Wrap JSON payloads with `<json>...</json>` tags so the log viewer renders them with syntax highlighting.
@@ -208,7 +179,7 @@ Wrap JSON payloads with `<json>...</json>` tags so the log viewer renders them w
 Emits a `clear` event to the server, wiping all logs from the viewer.
 
 ```dart
-EasyLogger.instance.clear();
+EasyLogger().clear();
 ```
 
 -----
@@ -218,7 +189,7 @@ EasyLogger.instance.clear();
 Disconnects the socket and releases all resources. Call this when logging is no longer needed (e.g. on logout or app termination).
 
 ```dart
-EasyLogger.instance.dispose();
+EasyLogger().dispose();
 ```
 
 -----
@@ -228,22 +199,23 @@ EasyLogger.instance.dispose();
 ```dart
 import 'package:flutter_easy_logger_plus/flutter_easy_logger_plus.dart';
 
+final _log = EasyLogger();
 // Log plain messages
-EasyLogger.instance.debug("View appeared", tag: "HomeScreen");
-EasyLogger.instance.warning("Cache miss — fetching from network", tag: "Cache");
-EasyLogger.instance.error("CoreData save failed", tag: "Persistence");
+_log.debug("View appeared", tag: "HomeScreen");
+_log.warning("Cache miss — fetching from network", tag: "Cache");
+_log.error("CoreData save failed", tag: "Persistence");
 
 // Log a JSON-encodable object
-final apiResponseStr = EasyLogger.instance.toJSONString(apiResponse);
-EasyLogger.instance.debug("API Response: <json>$apiResponseStr<json>", tag: "API");
-EasyLogger.instance.warning("API Response: <json>$apiResponseStr<json>", tag: "API");
-EasyLogger.instance.error("API Response: <json>$apiResponseStr<json>", tag: "API");
+final apiResponseStr = _log.toJSONString(apiResponse);
+_log.debug("API Response: <json>$apiResponseStr<json>", tag: "API");
+_log.warning("API Response: <json>$apiResponseStr<json>", tag: "API");
+_log.error("API Response: <json>$apiResponseStr<json>", tag: "API");
 
 // Clear all logs from the viewer
-EasyLogger.instance.clear();
+_log.clear();
 
 // Teardown
-EasyLogger.instance.dispose();
+_log.dispose();
 ```
 
 -----
@@ -271,8 +243,8 @@ EasyLogger.instance.dispose();
 
 ## Notes
 
-- `EasyLogger` is a singleton — access it everywhere via `EasyLogger.instance`.
-- Logs are **silently dropped** when `ENABLE_LOG` is `false` (no overhead in production builds).
+- `EasyLogger` is a singleton — access it everywhere via `EasyLogger()`(No memory leak,No initialize needed).
+- Logs are **silently dropped** when `LOG_SERVER_URI` is `null` (no overhead in production builds).
 - Logs emitted **while the socket is still connecting** are queued in memory and flushed automatically once the connection is ready.
 - The socket uses `websocket` transport only (no polling fallback).
 

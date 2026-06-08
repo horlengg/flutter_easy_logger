@@ -1,6 +1,6 @@
 name: flutter_easy_logger_plus
 description: "A lightweight Flutter logging plugin powered by Socket.IO that streams logs in real time to a remote log viewer server."
-version: 0.0.1
+version: 0.0.2
 homepage: "https://github.com/horlengg/flutter_easy_logger"
 
 environment:
